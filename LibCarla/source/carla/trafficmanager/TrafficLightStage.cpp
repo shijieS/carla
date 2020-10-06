@@ -42,10 +42,11 @@ void TrafficLightStage::Update(const unsigned long index) {
 
   // We determine to stop if the current position of the vehicle is not a
   // junction and there is a red or yellow light.
+  bool dummy = true;
   if (is_at_traffic_light &&
       traffic_light_state != TLS::Green &&
       traffic_light_state != TLS::Off &&
-      parameters.GetPercentageRunningLight(ego_actor_id) <= random_devices.at(ego_actor_id).next()) {
+      (dummy || parameters.GetPercentageRunningLight(ego_actor_id) <= random_devices.at(ego_actor_id).next())) {
 
     traffic_light_hazard = true;
   }
@@ -54,7 +55,7 @@ void TrafficLightStage::Update(const unsigned long index) {
           !is_at_traffic_light &&
           traffic_light_state != TLS::Green &&
           traffic_light_state != TLS::Off &&
-          parameters.GetPercentageRunningSign(ego_actor_id) <= random_devices.at(ego_actor_id).next()) {
+          (dummy || parameters.GetPercentageRunningSign(ego_actor_id) <= random_devices.at(ego_actor_id).next())) {
 
     traffic_light_hazard = HandleNonSignalisedJunction(ego_actor_id, junction_id, current_timestamp);
   }

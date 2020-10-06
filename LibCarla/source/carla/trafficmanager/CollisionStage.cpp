@@ -81,11 +81,12 @@ void CollisionStage::Update(const unsigned long index) {
         std::pair<bool, float> negotiation_result = NegotiateCollision(ego_actor_id,
                                                                        other_actor_id,
                                                                        look_ahead_index);
+        bool dummy = true;
         if (negotiation_result.first) {
           if ((other_actor_type == ActorType::Vehicle
-               && parameters.GetPercentageIgnoreVehicles(ego_actor_id) <= random_devices.at(ego_actor_id).next())
+               && (dummy || parameters.GetPercentageIgnoreVehicles(ego_actor_id) <= random_devices.at(ego_actor_id).next()))
               || (other_actor_type == ActorType::Pedestrian
-                  && parameters.GetPercentageIgnoreWalkers(ego_actor_id) <= random_devices.at(ego_actor_id).next())) {
+                  && (dummy || parameters.GetPercentageIgnoreWalkers(ego_actor_id) <= random_devices.at(ego_actor_id).next()))) {
             collision_hazard = true;
             obstacle_id = other_actor_id;
             available_distance_margin = negotiation_result.second;

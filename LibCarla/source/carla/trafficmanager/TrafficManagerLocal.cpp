@@ -4,6 +4,8 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+#include <fstream>
+
 #include "carla/client/detail/Simulator.h"
 
 #include "carla/trafficmanager/TrafficManagerLocal.h"
@@ -123,13 +125,22 @@ void TrafficManagerLocal::Run() {
   control_frame.reserve(INITIAL_SIZE);
   current_reserved_capacity = INITIAL_SIZE;
 
+  std::fstream log_file;
+  uint frame_count = 0u;
+
   while (run_traffic_manger.load()) {
 
     bool synchronous_mode = parameters.GetSynchronousMode();
     bool hybrid_physics_mode = parameters.GetHybridPhysicsMode();
 
+    if (synchronous_mode && frame_count == 0u) {
+      std::cout << "Opened tm_log.log !" << std::endl;
+      log_file.open ("/home/praveen/CarlaLogs/tm_log.log", std::ios::trunc | std::ios::out | std::ios::in);
+    }
+
     // Wait for external trigger to initiate cycle in synchronous mode.
     if (synchronous_mode) {
+      std::cout << "FC : " << frame_count << std::endl;
       std::unique_lock<std::mutex> lock(step_execution_mutex);
       step_begin_trigger.wait(lock, [this]() {return step_begin.load() || !run_traffic_manger.load();});
       step_begin.store(false);
@@ -200,6 +211,20 @@ void TrafficManagerLocal::Run() {
       batch_command.at(i) = control_frame.at(i);
     }
 
+    if (log_file.is_open()) {
+      log_file << "FRAME : " << ++frame_count << std::endl;
+      for (carla::rpc::Command &command: batch_command) {
+        if (command.command.type() == typeid(carla::rpc::Command::ApplyVehicleControl)) {
+          auto control_command = boost::get<carla::rpc::Command::ApplyVehicleControl>(command.command);
+          log_file << "ACTOR : " << control_command.actor
+                  << ", THROTTLE : " << control_command.control.throttle
+                  << ", BRAKE : " << control_command.control.brake
+                  << ", STEER : " << control_command.control.steer
+                  << std::endl;
+        }
+      }
+    }
+
     // Sending the current cycle's batch command to the simulator.
     if (synchronous_mode) {
       episode_proxy.Lock()->ApplyBatchSync(std::move(batch_command), false);
@@ -208,6 +233,10 @@ void TrafficManagerLocal::Run() {
     } else {
       episode_proxy.Lock()->ApplyBatch(std::move(batch_command), false);
     }
+  }
+
+  if (log_file) {
+    log_file.close();
   }
 }
 

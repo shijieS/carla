@@ -107,7 +107,8 @@ void LocalizationStage::Update(const unsigned long index) {
 
   if (!force_lane_change) {
     float perc_keep_right = parameters.GetKeepRightPercentage(actor_id);
-    if (perc_keep_right >= 0.0f && perc_keep_right >= random_devices.at(actor_id).next()) {
+    bool dummy = false;
+    if (dummy && perc_keep_right >= 0.0f && perc_keep_right >= random_devices.at(actor_id).next()) {
       force_lane_change = true;
       lane_change_direction = true;
     }
@@ -165,9 +166,9 @@ void LocalizationStage::Update(const unsigned long index) {
                                                             b->GetLocation());
                   return a_x_product < b_x_product;
                 });
-      double r_sample = random_devices.at(actor_id).next();
-      double s_bucket = 100.0 / next_waypoints.size();
-      selection_index = static_cast<uint64_t>(std::floor(r_sample/s_bucket));
+      // double r_sample = random_devices.at(actor_id).next();
+      // double s_bucket = 100.0 / next_waypoints.size();
+      // selection_index = static_cast<uint64_t>(std::floor(r_sample/s_bucket));
     } else if (next_waypoints.size() == 0) {
       if (!parameters.GetOSMMode()) {
         std::cout << "This map has dead-end roads, please change the set_open_street_map parameter to true" << std::endl;
