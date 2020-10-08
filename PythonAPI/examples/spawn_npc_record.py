@@ -252,7 +252,7 @@ def main():
         traffic_manager.global_percentage_speed_difference(30.0)
 
         count = 1
-        while count > 1000:
+        while count < 1000:
             if args.sync and synchronous_master:
                 world.tick()
             else:

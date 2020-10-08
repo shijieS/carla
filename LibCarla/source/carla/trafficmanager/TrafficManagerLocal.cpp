@@ -134,13 +134,11 @@ void TrafficManagerLocal::Run() {
     bool hybrid_physics_mode = parameters.GetHybridPhysicsMode();
 
     if (synchronous_mode && frame_count == 0u) {
-      std::cout << "Opened tm_log.log !" << std::endl;
       log_file.open ("/home/praveen/CarlaLogs/tm_log.log", std::ios::trunc | std::ios::out | std::ios::in);
     }
 
     // Wait for external trigger to initiate cycle in synchronous mode.
     if (synchronous_mode) {
-      std::cout << "FC : " << frame_count << std::endl;
       std::unique_lock<std::mutex> lock(step_execution_mutex);
       step_begin_trigger.wait(lock, [this]() {return step_begin.load() || !run_traffic_manger.load();});
       step_begin.store(false);
@@ -166,6 +164,8 @@ void TrafficManagerLocal::Run() {
     if (registered_vehicles_state != current_registered_vehicles_state || number_of_vehicles != registered_vehicles.Size()) {
 
       vehicle_id_list = registered_vehicles.GetIDList();
+      std::sort(vehicle_id_list.begin(), vehicle_id_list.end());
+
       number_of_vehicles = vehicle_id_list.size();
 
       // Reserve more space if needed.
